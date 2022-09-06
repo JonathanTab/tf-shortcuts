@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <style></style>
+  <link rel="stylesheet" href="../js/themes/default/style.css" />
+  <link rel="stylesheet" href="../css/scene_manager.css" />
+  <link rel="stylesheet" href="../css/jquery-ui.css" />
+</head>
+
+<body>
+
+  <div id="header">
+    <div class="toolbar">
+      <a href="#" title="Update Active Scene" class='toolbar-command icon-left'>
+        <i id="updateItem" class="icon_menu"></i>
+      </a>
+      <a href="#" title="Add scene" class='toolbar-command icon-left'>
+        <i id="addItem" class="icon_menu"></i>
+      </a>
+      <a href="#" title="Delete scene" class='toolbar-command icon-left'>
+        <i id="deleteItem" class="icon_menu"></i>
+      </a>
+      <a href="#" title="Details" class='toolbar-command icon-right'>
+        <i id="right_top_menu" onclick="toggleMenu();" class="icon_menu"></i>
+      </a>
+      <a href="#" title="" class='toolbar-separator icon-left'></a>
+      <a href="#" title="Filter">
+        <input type="text" id="search" placeholder="Search..." title="Type in a name">
+      </a>
+    </div>
+  </div>
+
+  <div id="tree_view" class="tree_view_div"></div>
+
+  <div id="footer">
+    <div id="properties">
+      <div class="accordion">
+        <button id="status_bar"><template>{{statusbarText()}}</template></button>
+      </div>
+
+      <div id="resizable" class="content">
+        <div class="ui-resizable-handle ui-resizable-n"></div>
+        <table id="properties_table">
+          <tr style="height: 24px;">
+            <td>Prefix</td>
+            <td>
+              <input type="text" name="" class="property" id="prop_prefix" v-model="prefix" :readonly="!canEditPrefix()"
+                v-on:keyup="prefixChange($event)">
+            </td>
+          </tr>
+          <tr style="display: none;">
+            <td>Name</td>
+            <td><input type="text" name="" class="property" id="prop_name"></td>
+          </tr>
+
+          <tr class="description">
+            <td style="position: relative">
+              Description
+              <div style="padding-top: 5px;">
+                <template v-if="selected.length > 0 && !onEditDescription">
+                  <button id="edit_description" class="btn-prop" @click="editDescription()" type="button">Edit</button>
+                </template>
+                <span class="btn-prop" v-if="onEditDescription">
+                  <button class="btn-prop-right" id="save_description" @click="saveDescription()"
+                    type="button">Save</button>
+                  <button class="btn-prop-right" id="cancel_description" @click="cancelDescription()"
+                    type="button">Cancel</button>
+                </span>
+              </div>
+            </td>
+            <td>
+              <div class="property" id="prop_description"><span v-html="description"></span></div>
+            </td>
+            <!-- <td><textarea rows="4" cols="30" class="property" id="prop_description" placeholder="Add description..."> </textarea></td> -->
+          </tr>
+
+          <tr style="display: none;">
+            <td>ID</td>
+            <td><input type="text" name="" class="property" id="prop_id"></td>
+          </tr>
+          <tr style="display: none;">
+            <td>Style</td>
+            <td><select class="property" id="prop_style"></select></td>
+          </tr>
+          <tr style="display: none;">
+            <td>Shadow</td>
+            <td>
+              <select class="property" id="prop_shadow">
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+                <option value=""></option>
+              </select></td>
+          </tr>
+
+        </table>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <a href="#" title="Toggle Checkbox" class='toolbar-command icon-right'>
+        <i id="toggleCheckbox" onclick="toggleChecboxes();" class="icon_menu"></i>
+      </a>
+      <a href="#" title="" class='toolbar-separator icon-left'></a>
+    </div>
+  </div>
+
+  <div class="menu" id="menu_layer_state">
+    <div class="settings">
+      <input type="submit" value="Get Layer" id="getLayer" class="submit_button" />
+    </div>
+
+    <!-- <div class="settings">
+			<input type="checkbox" name="layerSceneSelected" id="onlyCurrent", value="onlyCurrent">
+			<label for="onlyCurrent">Only visible on active scene</label>
+		</div>
+		<div class="settings">
+			<input type="checkbox" name="layerSceneSelected" id="hiddenCurrent", value="hiddenCurrent">
+			<label for="hiddenCurrent">Hidden on active scene</label>
+		</div> -->
+
+    <div class="settings">
+      <input type="checkbox" name="layerSceneSelected" id="layerVisibleSelected" , value="layerVisibleSelected">
+      <label for="layerVisibleSelected">Only visible on selected</label>
+    </div>
+    <div class="settings">
+      <input type="checkbox" name="layerSceneSelected" id="layerHiddenSelected" , value="layerHiddenSelected"
+        checked="true">
+      <label for="layerHiddenSelected">Hidden on selected</label>
+    </div>
+
+
+    <fieldset id="layer_behavior">
+      <legend>
+        <input type="checkbox" name="layer_use_behavior" id="layer_use_behavior" checked="false">
+        <label for="layer_use_behavior">Scene behavior</label>
+      </legend>
+      <div class="settings">
+        <input type="radio" name="layerExisting" id="visibleExisting" value="visibleExisting" checked="true">
+        <label for="visibleExisting">Visible on existing scenes</label>
+        <br />
+        <input type="radio" name="layerExisting" id="hiddenExisting" value="hiddenExisting">
+        <label for="hiddenExisting">Hidden on existing scenes</label>
+      </div>
+      <div class="settings">
+        <input type="radio" name="layerNew" id="visibleNew" value="visibleNew" checked="true">
+        <label for="visibleNew">Visible on new scenes</label>
+        <br />
+        <input type="radio" name="layerNew" id="hiddenNew" value="hiddenNew">
+        <label for="hiddenNew">Hidden on new scenes</label>
+      </div>
+    </fieldset>
+
+    <div class="settings">
+      <input type="submit" value="OK" id="okLayer" class="submit_button" />
+      <input type="submit" value="Cancel" id="cancelLayer" class="submit_button" />
+    </div>
+  </div>
+
+  <div class="menu" id="menu_entities_state">
+    <div class="settings">
+      <input type="radio" name="entityState" id="entityOnlyCurrent" value="entityOnlyCurrent">
+      <label id="entityOnlyCurrentLabel" for="entityOnlyCurrent">Only visible in active scene</label>
+    </div>
+    <div class="settings">
+      <input type="radio" name="entityState" id="entityOnlySelected" value="entityOnlySelected">
+      <label id="entityOnlySelectedLabel" for="entityOnlySelected">Only visible in selected</label>
+    </div>
+    <div class="settings">
+      <input type="radio" name="entityState" id="entityShowSelected" value="entityShowSelected" checked="true">
+      <label id="entityShowSelectedLabel" for="entityShowSelected">Show in selected</label>
+    </div>
+    <div class="settings">
+      <input type="radio" name="entityState" id="entityHideSelected" value="entityHideSelected" checked="true">
+      <label id="entityHideSelectedLabel" for="entityHideSelected">Hide in selected</label>
+    </div>
+
+    <div class="settings">
+      <input type="submit" value="OK" id="okEntity" class="submit_button" />
+      <input type="submit" value="Cancel" id="cancelEntity" class="submit_button" />
+    </div>
+  </div>
+
+  <script src="../js/jquery.min.js"></script>
+  <script src="../js/jquery-ui.min.js"></script>
+  <script src="../js/jstree.min.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/tree_events.js"></script>
+
+  <script></script>
+</body>
+
+</html>
